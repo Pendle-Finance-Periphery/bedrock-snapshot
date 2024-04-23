@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "name": "pendle-point-tracking",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "format": "yarn prettier --write \"src/**/**/*.{js,ts}\"",
+    "build": "sentio build",
+    "gen": "sentio gen",
+    "test": "sentio test",
+    "upload": "sentio upload --skip-deps"
+  },
+  "dependencies": {
+    "@sentio/sdk": "^2.32.5",
+    "@types/nedb": "^1.8.16",
+    "nedb": "^1.8.0",
+    "nedb-async": "^0.1.6",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@sentio/cli": "^2.14.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.2.2"
+  }
+}
