@@ -55,8 +55,6 @@ export async function processAllYTAccounts(
   const allYTBalances = await readAllUserERC20Balances(ctx, allAddresses, contract.address);
   const allYTPositions = await readAllYTPositions(ctx, allAddresses);
 
-  let totalFee = 0n;
-
   for (let i = 0; i < allAddresses.length; i++) {
     const address = allAddresses[i];
     const balance = allYTBalances[i];
@@ -85,7 +83,6 @@ export async function processAllYTAccounts(
     };
 
     const fee = (impliedHolding * 3n) / 100n;
-    totalFee += fee;
 
     ctx.eventLogger.emit(EVENT_USER_SHARE, {
       label: POINT_SOURCE_YT,
@@ -95,6 +92,10 @@ export async function processAllYTAccounts(
 
     await db.asyncUpdate({ _id: address }, newSnapshot, { upsert: true });
   }
+
+  const supply = await contract.totalSupply();
+  const index = await contract.pyIndexStored();
+  const totalFee = supply * MISC_CONSTS.ONE_E18 / index * 3n / 100n;
 
   ctx.eventLogger.emit(EVENT_USER_SHARE, {
     label: POINT_SOURCE_YT,
