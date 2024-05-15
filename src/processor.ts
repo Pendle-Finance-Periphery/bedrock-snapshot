@@ -15,14 +15,14 @@ GLOBAL_CONFIG.execution = {
   sequential: true,
 };
 
-ERC20Processor.bind({
-  address: PENDLE_POOL_ADDRESSES.SY,
-  startBlock: PENDLE_POOL_ADDRESSES.START_BLOCK,
-  name: 'Pendle Pool SY',
-  network: CONFIG.BLOCKCHAIN,
-}).onEventTransfer(async (evt, ctx) => {
-  await handleSYTransfer(evt, ctx);
-});
+// ERC20Processor.bind({
+//   address: PENDLE_POOL_ADDRESSES.SY,
+//   startBlock: PENDLE_POOL_ADDRESSES.START_BLOCK,
+//   name: 'Pendle Pool SY',
+//   network: CONFIG.BLOCKCHAIN,
+// }).onEventTransfer(async (evt, ctx) => {
+//   await handleSYTransfer(evt, ctx);
+// });
 
 PendleYieldTokenProcessor.bind({
   address: PENDLE_POOL_ADDRESSES.YT,
