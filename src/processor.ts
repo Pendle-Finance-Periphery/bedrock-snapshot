@@ -81,13 +81,14 @@ for (let pp of PENDLE_POOL_ADDRESSES.PENPIE_RECEIPT_TOKEN) {
   });
 }
 
-// ERC20Processor.bind({
-//   address: PENDLE_POOL_ADDRESSES.STAKEDAO_RECEIPT_TOKEN,
-//   startBlock: PENDLE_POOL_ADDRESSES.START_BLOCK,
-//   name: "Stakedao Receipt Token",
-// }).onEventTransfer(async(evt, ctx) => {
-//   await processAllLPAccounts(ctx, [
-//     evt.args.from.toLowerCase(),
-//     evt.args.to.toLowerCase(),
-//   ]);
-// });
+for(let sd of PENDLE_POOL_ADDRESSES.STAKEDAO_RECEIPT_TOKEN) {
+  ERC20Processor.bind({
+    address: sd,
+    startBlock: PENDLE_POOL_ADDRESSES.START_BLOCK,
+    name: 'Stakedao Receipt Token',
+    network: CONFIG.BLOCKCHAIN,
+  }).onEventTransfer(async (evt, ctx) => {
+    await processAllLPAccounts(ctx, [evt.args.from.toLowerCase(), evt.args.to.toLowerCase()]);
+  });
+
+}

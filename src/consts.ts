@@ -15,46 +15,33 @@ export const MISC_CONSTS = {
 
 export const PENDLE_POOL_ADDRESSES = {
   SY: '0xc430db19339a3051192233b4c49f9ab3dc6d16b7',
-  YT: '0x5ae176bbcb9a4461aeeeb97c90c2a80c2078006a',
+  YT: '0xdf74ba4436478969a54ecb352093312fe97ebaa5',
   LP: [
     {
-      address: '0xbce250b572955c044c0c4e75b2fa8016c12cabf9',
-      deployedBlock: 19289158,
-    },
-    {
-      address: '0x38100a480dbed278b0fe57ba80a75498a7dc5bb1',
-      deployedBlock: 19537421,
+      address: '0xbae2df4dfcd0c613018d6056a40077f2d1eff28a',
+      deployedBlock: 19922391,
     },
   ],
-  START_BLOCK: 19289152,
+  START_BLOCK: 19922391,
   TREASURY: '0x8270400d528c34e1596ef367eedec99080a1b592',
-  EQB_STAKING: ['0x59802239640d082d030cd45854a142e2f696545e', '0x4e7322911261afe0b9e89d47fc249c148330c2af'],
-  PENPIE_RECEIPT_TOKEN: ['0xb86f1ee5094e1ae3fec9c7d9ce61e5deaed7e3c2'],
-  // STAKEDAO_RECEIPT_TOKEN: "0xdd9df6a77b4a4a07875f55ce5cb6b933e52cb30a",
+  EQB_STAKING: ['0x501cff5df8a307aca27c916d6e1720d41fdf64a5'],
+  PENPIE_RECEIPT_TOKEN: ['0x660fe09c83df5810e118a469b472ea47de63e806'],
+  STAKEDAO_RECEIPT_TOKEN: ["0x7d624409353e27f9b3650e73ebaea0122adb1855"],
   LIQUID_LOCKERS: [
     {
-      // Penpie
       address: '0x6e799758cee75dae3d84e09d40dc416ecf713652',
-      lpToken: '0xbce250b572955c044c0c4e75b2fa8016c12cabf9',
-      receiptToken: '0xb86f1ee5094e1ae3fec9c7d9ce61e5deaed7e3c2',
+      lpToken: '0xbae2df4dfcd0c613018d6056a40077f2d1eff28a',
+      receiptToken: '0x660fe09c83df5810e118a469b472ea47de63e806',
     },
     {
-      // EQB
       address: '0x64627901dadb46ed7f275fd4fc87d086cff1e6e3',
-      lpToken: '0xbce250b572955c044c0c4e75b2fa8016c12cabf9',
-      receiptToken: '0x59802239640d082d030cd45854a142e2f696545e',
+      lpToken: '0xbae2df4dfcd0c613018d6056a40077f2d1eff28a',
+      receiptToken: '0x501cff5df8a307aca27c916d6e1720d41fdf64a5',
     },
-
-    // {
-    //   // Penpie
-    //   address: '0x6e799758cee75dae3d84e09d40dc416ecf713652',
-    //   lpToken: '0x38100a480dbed278b0fe57ba80a75498a7dc5bb1',
-    // },
     {
-      // EQB
-      address: '0x64627901dadb46ed7f275fd4fc87d086cff1e6e3',
-      lpToken: '0x38100a480dbed278b0fe57ba80a75498a7dc5bb1',
-      receiptToken: '0x4e7322911261afe0b9e89d47fc249c148330c2af',
-    },
+      address: '0xd8fa8dc5adec503acc5e026a98f32ca5c1fa289a',
+      lpToken: '0xbae2df4dfcd0c613018d6056a40077f2d1eff28a',
+      receiptToken: '0x7d624409353e27f9b3650e73ebaea0122adb1855',
+    }
   ],
 };
