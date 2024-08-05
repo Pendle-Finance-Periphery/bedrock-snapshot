@@ -1,7 +1,7 @@
 import { EthChainId } from '@sentio/sdk/eth';
 
 export const CONFIG = {
-  BLOCKCHAIN: EthChainId.ETHEREUM,
+  BLOCKCHAIN: EthChainId.ARBITRUM,
   SETTLE_FREQUENCY: 60 * 24,
 };
 
