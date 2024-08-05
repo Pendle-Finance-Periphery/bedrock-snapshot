@@ -14,34 +14,29 @@ export const MISC_CONSTS = {
 };
 
 export const PENDLE_POOL_ADDRESSES = {
-  SY: '0xc430db19339a3051192233b4c49f9ab3dc6d16b7',
-  YT: '0xdf74ba4436478969a54ecb352093312fe97ebaa5',
+  SY: '0x5b56f4bf94807b547eb5e7eba5cd8c033af83aed',
+  YT: '0xa810ba21e65d54de0283002db8fb6ea504c83234',
   LP: [
     {
-      address: '0xbae2df4dfcd0c613018d6056a40077f2d1eff28a',
-      deployedBlock: 19922391,
+      address: '0x279b44e48226d40ec389129061cb0b56c5c09e46',
+      deployedBlock: 233743830,
     },
   ],
-  START_BLOCK: 19922391,
+  START_BLOCK: 233743830,
   TREASURY: '0x8270400d528c34e1596ef367eedec99080a1b592',
-  EQB_STAKING: ['0x501cff5df8a307aca27c916d6e1720d41fdf64a5'],
-  PENPIE_RECEIPT_TOKEN: ['0x660fe09c83df5810e118a469b472ea47de63e806'],
+  EQB_STAKING: ['0x54a64a549b52024fd913ecb3cf872583215618fb'],
+  PENPIE_RECEIPT_TOKEN: ['0x28ab3fdef5e79f1211b10ec1bf745a04bfd129e8'],
   STAKEDAO_RECEIPT_TOKEN: ["0x7d624409353e27f9b3650e73ebaea0122adb1855"],
   LIQUID_LOCKERS: [
     {
       address: '0x6e799758cee75dae3d84e09d40dc416ecf713652',
-      lpToken: '0xbae2df4dfcd0c613018d6056a40077f2d1eff28a',
-      receiptToken: '0x660fe09c83df5810e118a469b472ea47de63e806',
+      lpToken: '0x279b44e48226d40ec389129061cb0b56c5c09e46',
+      receiptToken: '0x28ab3fdef5e79f1211b10ec1bf745a04bfd129e8',
     },
     {
       address: '0x64627901dadb46ed7f275fd4fc87d086cff1e6e3',
-      lpToken: '0xbae2df4dfcd0c613018d6056a40077f2d1eff28a',
-      receiptToken: '0x501cff5df8a307aca27c916d6e1720d41fdf64a5',
+      lpToken: '0x279b44e48226d40ec389129061cb0b56c5c09e46',
+      receiptToken: '0x54a64a549b52024fd913ecb3cf872583215618fb',
     },
-    {
-      address: '0xd8fa8dc5adec503acc5e026a98f32ca5c1fa289a',
-      lpToken: '0xbae2df4dfcd0c613018d6056a40077f2d1eff28a',
-      receiptToken: '0x7d624409353e27f9b3650e73ebaea0122adb1855',
-    }
   ],
 };
