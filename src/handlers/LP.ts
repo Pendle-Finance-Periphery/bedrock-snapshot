@@ -6,7 +6,6 @@ import {
   TransferEvent,
   getPendleMarketContractOnContext,
 } from '../types/eth/pendlemarket.js';
-import { updatePoints } from '../points/point-manager.js';
 import { getUnixTimestamp, isLiquidLockerAddress, isSentioInternalError } from '../helper.js';
 import { MISC_CONSTS, PENDLE_POOL_ADDRESSES } from '../consts.js';
 import { getERC20ContractOnContext } from '@sentio/sdk/eth/builtin/erc20';
@@ -14,6 +13,9 @@ import { EthContext } from '@sentio/sdk/eth';
 import { getMulticallContractOnContext } from '../types/eth/multicall.js';
 import { readAllUserActiveBalances, readAllUserERC20Balances } from '../multicall.js';
 import { EVENT_USER_SHARE, POINT_SOURCE_LP } from '../types.js';
+
+import { AccountSnapshot, UserShareEvent, Label } from '../schema/schema.js';
+import { convertIdToUser, convertUserToId } from './helper.js';
 
 /**
  * @dev 1 LP = (X PT + Y SY) where X and Y are defined by market conditions
@@ -25,34 +27,39 @@ import { EVENT_USER_SHARE, POINT_SOURCE_LP } from '../types.js';
  * Currently for all liquid lockers, 1 receipt token = 1 LP
  */
 
-const db = new AsyncNedb({
-  filename: '/data/pendle-accounts-lp.db',
-  autoload: true,
-});
+// const db = new AsyncNedb({
+//   filename: '/data/pendle-accounts-lp.db',
+//   autoload: true,
+// });
 
-db.persistence.setAutocompactionInterval(60 * 1000);
+// db.persistence.setAutocompactionInterval(60 * 1000);
 
-type AccountSnapshot = {
-  _id: string;
-  lastUpdatedAt: number;
-  lastImpliedHolding: string;
-};
+// type AccountSnapshot = {
+//   _id: string;
+//   lastUpdatedAt: number;
+//   lastImpliedHolding: string;
+// };
 
 export async function handleLPTransfer(evt: TransferEvent, ctx: PendleMarketContext) {
-  await processAllLPAccounts(ctx, [evt.args.from.toLowerCase(), evt.args.to.toLowerCase()]);
+  await processAllLPAccounts(ctx, evt.index, [evt.args.from.toLowerCase(), evt.args.to.toLowerCase()]);
 }
 
 export async function handleMarketRedeemReward(evt: RedeemRewardsEvent, ctx: PendleMarketContext) {
-  await processAllLPAccounts(ctx);
+  await processAllLPAccounts(ctx, evt.index);
 }
 
-export async function handleMarketSwap(_: SwapEvent, ctx: PendleMarketContext) {
-  await processAllLPAccounts(ctx);
+export async function handleMarketSwap(evt: SwapEvent, ctx: PendleMarketContext) {
+  await processAllLPAccounts(ctx, evt.index);
 }
 
-export async function processAllLPAccounts(ctx: EthContext, addressesToAdd: string[] = []) {
+export async function processAllLPAccounts(ctx: EthContext, logIndex: number, addressesToAdd: string[] = []) {
   // might not need to do this on interval since we are doing it on every swap
-  const allAddresses = (await db.asyncFind<AccountSnapshot>({})).map((snapshot) => snapshot._id);
+  // const allAddresses = (await db.asyncFind<AccountSnapshot>({})).map((snapshot) => snapshot._id);
+
+  const allAddresses = (await ctx.store.list(AccountSnapshot))
+    .map((snapshot) => convertIdToUser(snapshot.id))
+    .filter((u) => u.label == Label.LP)
+    .map((u) => u.addr);
 
   for (let address of addressesToAdd) {
     address = address.toLowerCase();
@@ -106,33 +113,26 @@ export async function processAllLPAccounts(ctx: EthContext, addressesToAdd: stri
 
   const timestamp = getUnixTimestamp(ctx.timestamp);
   for (let account in result) {
-    await updateAccount(ctx, account, result[account], timestamp);
+    await updateAccount(ctx, logIndex, account, result[account], timestamp);
   }
 }
 
-async function updateAccount(ctx: EthContext, account: string, impliedSy: bigint, timestamp: number) {
-  const snapshot = await db.asyncFindOne<AccountSnapshot>({ _id: account });
-  if (snapshot && snapshot.lastUpdatedAt < timestamp) {
-    updatePoints(
-      ctx,
-      POINT_SOURCE_LP,
-      account,
-      BigInt(snapshot.lastImpliedHolding),
-      BigInt(timestamp - snapshot.lastUpdatedAt),
-      timestamp
-    );
-  }
-  const newSnapshot = {
-    _id: account,
-    lastUpdatedAt: timestamp,
-    lastImpliedHolding: impliedSy.toString(),
-  };
+async function updateAccount(ctx: EthContext, logIndex: number, account: string, impliedSy: bigint, timestamp: number) {
+  const accSnapshot = new AccountSnapshot({
+    id: convertUserToId(Label.LP, account),
+    lastUpdated: timestamp,
+    lastImpliedHolding: impliedSy,
+  })
+  await ctx.store.upsert(accSnapshot)
 
-  ctx.eventLogger.emit(EVENT_USER_SHARE, {
-    label: POINT_SOURCE_LP,
-    account: account,
+  const shareEvent = new UserShareEvent({
+    id: `${ctx.blockNumber}-${logIndex}-${Label.LP}-${account}`,
+    label: Label.LP,
+    account,
     share: impliedSy,
-  });
-
-  await db.asyncUpdate({ _id: account }, newSnapshot, { upsert: true });
+    timestamp: timestamp,
+    blockNumber: ctx.blockNumber,
+    log_index: logIndex
+  })
+  await ctx.store.upsert(shareEvent);
 }

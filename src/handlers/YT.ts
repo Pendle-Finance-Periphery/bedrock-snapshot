@@ -4,102 +4,99 @@ import {
   PendleYieldTokenContext,
   RedeemInterestEvent,
   TransferEvent,
+  BurnEvent
 } from '../types/eth/pendleyieldtoken.js';
-import { updatePoints } from '../points/point-manager.js';
 import { MISC_CONSTS, PENDLE_POOL_ADDRESSES } from '../consts.js';
 import { getUnixTimestamp, isPendleAddress } from '../helper.js';
 import { readAllUserERC20Balances, readAllYTPositions } from '../multicall.js';
 import { EVENT_USER_SHARE, POINT_SOURCE_YT } from '../types.js';
 import { EthContext } from '@sentio/sdk/eth';
+import { AccountSnapshot, UserShareEvent, Label } from '../schema/schema.js';
+import { convertIdToUser, convertUserToId } from './helper.js';
 
-const db = new AsyncNedb({
-  filename: '/data/pendle-accounts-yt.db',
-  autoload: true,
-});
+// const db = new AsyncNedb({
+//   filename: '/data/pendle-accounts-yt.db',
+//   autoload: true,
+// });
 
-db.persistence.setAutocompactionInterval(60 * 1000);
+// db.persistence.setAutocompactionInterval(60 * 1000);
 
-type AccountSnapshot = {
-  _id: string;
-  lastUpdatedAt: number;
-  lastImpliedHolding: string;
-};
+// type AccountSnapshot = {
+//   _id: string;
+//   lastUpdatedAt: number;
+//   lastImpliedHolding: string;
+// };
+
+export async function handleYTBurn(evt: BurnEvent, ctx: PendleYieldTokenContext) {
+  await processAllYTAccounts(ctx, evt.index, []);
+}
 
 export async function handleYTTransfer(evt: TransferEvent, ctx: PendleYieldTokenContext) {
-  await processAllYTAccounts(ctx, [evt.args.from.toLowerCase(), evt.args.to.toLowerCase()], true);
+  await processAllYTAccounts(ctx, evt.index, [evt.args.from.toLowerCase(), evt.args.to.toLowerCase()]);
 }
 
 export async function handleYTRedeemInterest(evt: RedeemInterestEvent, ctx: PendleYieldTokenContext) {
-  await processAllYTAccounts(ctx, [evt.args.user.toLowerCase()], true);
+  await processAllYTAccounts(ctx, evt.index, [evt.args.user.toLowerCase()]);
 }
 
 export async function processAllYTAccounts(
   ctx: EthContext,
+  logIndex: number,
   addressesToAdd: string[] = [],
-  shouldIncludeDb: boolean = true
 ) {
   const contract = getPendleYieldTokenContractOnContext(ctx, PENDLE_POOL_ADDRESSES.YT);
+  const timestamp = getUnixTimestamp(ctx.timestamp);
+  
   if (await contract.isExpired()) {
+    const reserve = await contract.syReserve();
+    const allAddresses = (await ctx.store.list(AccountSnapshot)).map(s => convertIdToUser(s.id)).filter((u) => u.label == Label.YT).map((u) => u.addr)
+    if (allAddresses.length != 0) {
+      for(let a of allAddresses) {
+        await updateAccount(ctx, logIndex, a, 0n, timestamp);
+      }
+      await ctx.store.delete(AccountSnapshot, allAddresses.map((a) => convertUserToId(Label.YT, a)))
+    }
+    await updateAccount(ctx, logIndex, PENDLE_POOL_ADDRESSES.TREASURY, reserve, timestamp);
     return;
   }
 
-  const allAddresses = shouldIncludeDb ? (await db.asyncFind<AccountSnapshot>({})).map((x) => x._id) : [];
-  for (let address of addressesToAdd) {
-    address = address.toLowerCase();
-    if (!allAddresses.includes(address) && !isPendleAddress(address) && address != PENDLE_POOL_ADDRESSES.TREASURY) {
-      allAddresses.push(address);
-    }
-  }
+  const allYTBalances = await readAllUserERC20Balances(ctx, addressesToAdd, contract.address);
+  const allYTPositions = await readAllYTPositions(ctx, addressesToAdd);
 
-  const timestamp = getUnixTimestamp(ctx.timestamp);
-  const allYTBalances = await readAllUserERC20Balances(ctx, allAddresses, contract.address);
-  const allYTPositions = await readAllYTPositions(ctx, allAddresses);
-
-  for (let i = 0; i < allAddresses.length; i++) {
-    const address = allAddresses[i];
+  for (let i = 0; i < addressesToAdd.length; i++) {
+    const address = addressesToAdd[i];
     const balance = allYTBalances[i];
     const interestData = allYTPositions[i];
-
-    const snapshot = await db.asyncFindOne<AccountSnapshot>({ _id: address });
-    if (snapshot && snapshot.lastUpdatedAt < timestamp) {
-      updatePoints(
-        ctx,
-        POINT_SOURCE_YT,
-        address,
-        BigInt(snapshot.lastImpliedHolding),
-        BigInt(timestamp - snapshot.lastUpdatedAt),
-        timestamp
-      );
-    }
-
     if (interestData.lastPYIndex == 0n) continue;
 
     const impliedHolding = (balance * MISC_CONSTS.ONE_E18) / interestData.lastPYIndex + interestData.accruedInterest;
-
-    const newSnapshot = {
-      _id: address,
-      lastUpdatedAt: timestamp,
-      lastImpliedHolding: impliedHolding.toString(),
-    };
-
     const fee = (impliedHolding * 3n) / 100n;
-
-    ctx.eventLogger.emit(EVENT_USER_SHARE, {
-      label: POINT_SOURCE_YT,
-      account: address,
-      share: impliedHolding - fee,
-    });
-
-    await db.asyncUpdate({ _id: address }, newSnapshot, { upsert: true });
+    await updateAccount(ctx, logIndex, address, impliedHolding - fee, timestamp);
   }
 
   const supply = await contract.totalSupply();
   const index = await contract.pyIndexStored();
   const totalFee = supply * MISC_CONSTS.ONE_E18 / index * 3n / 100n;
+  await updateAccount(ctx, logIndex, PENDLE_POOL_ADDRESSES.TREASURY, totalFee, timestamp);
+}
 
-  ctx.eventLogger.emit(EVENT_USER_SHARE, {
-    label: POINT_SOURCE_YT,
-    account: PENDLE_POOL_ADDRESSES.TREASURY,
-    share: totalFee,
-  });
+
+async function updateAccount(ctx: EthContext, logIndex: number, account: string, impliedSy: bigint, timestamp: number) {
+  const accSnapshot = new AccountSnapshot({
+    id: convertUserToId(Label.YT, account),
+    lastUpdated: timestamp,
+    lastImpliedHolding: impliedSy,
+  })
+  await ctx.store.upsert(accSnapshot)
+
+  const shareEvent = new UserShareEvent({
+    id: `${ctx.blockNumber}-${logIndex}-${Label.YT}-${account}`,
+    label: Label.YT,
+    account,
+    share: impliedSy,
+    timestamp: timestamp,
+    blockNumber: ctx.blockNumber,
+    log_index: logIndex
+  })
+  await ctx.store.upsert(shareEvent);
 }

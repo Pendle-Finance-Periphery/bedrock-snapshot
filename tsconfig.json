@@ -7,7 +7,7 @@
     "esModuleInterop": true,
     "noImplicitReturns": true,
     "noImplicitAny": true,
-    "module": "nodenext",
+    "module": "NodeNext",
     "moduleResolution": "nodenext",
     "strictNullChecks": true,
     "stripInternal": true,
@@ -15,7 +15,11 @@
     "noEmitOnError": false,
     "rootDir": "./src",
     "outDir": "./dist",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true
   },
-  "exclude": ["dist", "jest.config.ts"]
+  "exclude": ["dist", "jest.config.ts"],
+  "include": ["src/**/**/*.ts"]
 }

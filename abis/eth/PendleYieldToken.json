@@ -1,5 +1,97 @@
 [
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_SY",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_PT",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "_name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_symbol",
+        "type": "string"
+      },
+      {
+        "internalType": "uint8",
+        "name": "__decimals",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_expiry",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "_doCacheIndexSameBlock",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "ArrayEmpty",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ArrayLengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "YCExpired",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "YCNoFloatingSy",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "YCNotExpired",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "YCNothingToRedeem",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "YCPostExpiryDataNotSet",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "actualSy",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "requiredSy",
+        "type": "uint256"
+      }
+    ],
+    "name": "YieldContractInsufficientSy",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -53,6 +145,38 @@
       }
     ],
     "name": "Burn",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amountInterestFee",
+        "type": "uint256"
+      }
+    ],
+    "name": "CollectInterestFee",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "rewardToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amountRewardFee",
+        "type": "uint256"
+      }
+    ],
+    "name": "CollectRewardFee",
     "type": "event"
   },
   {
@@ -166,25 +290,6 @@
       }
     ],
     "name": "Transfer",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "amountRewardsOut",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "syOut",
-        "type": "uint256"
-      }
-    ],
-    "name": "WithdrawFeeToTreasury",
     "type": "event"
   },
   {
@@ -334,6 +439,34 @@
   },
   {
     "inputs": [],
+    "name": "getPostExpiryData",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "firstPYIndex",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalSyInterestForTreasury",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "firstRewardIndexes",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "userRewardOwed",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getRewardTokens",
     "outputs": [
       {
@@ -383,6 +516,35 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "receiverPTs",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "receiverYTs",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amountSyToMints",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "mintPYMulti",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "amountPYOuts",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "name",
     "outputs": [
@@ -397,15 +559,46 @@
   },
   {
     "inputs": [],
+    "name": "postExpiry",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "firstPYIndex",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "totalSyInterestForTreasury",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "pyIndexCurrent",
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "currentIndex",
         "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pyIndexLastUpdatedBlock",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -440,6 +633,24 @@
       }
     ],
     "name": "redeemDueInterestAndRewards",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "interestOut",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "rewardsOut",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "redeemInterestAndRewardsPostExpiryForTreasury",
     "outputs": [
       {
         "internalType": "uint256",
@@ -509,6 +720,26 @@
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "setPostExpiryData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "syReserve",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -594,7 +825,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "user",
+        "name": "",
         "type": "address"
       }
     ],
@@ -602,12 +833,12 @@
     "outputs": [
       {
         "internalType": "uint128",
-        "name": "lastPYIndex",
+        "name": "index",
         "type": "uint128"
       },
       {
         "internalType": "uint128",
-        "name": "accruedInterest",
+        "name": "accrued",
         "type": "uint128"
       }
     ],
@@ -618,12 +849,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "token",
+        "name": "",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "user",
+        "name": "",
         "type": "address"
       }
     ],

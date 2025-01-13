@@ -1,0 +1,20 @@
+type AccountSnapshot @entity {
+    id: ID!
+    lastUpdated: Int!
+    lastImpliedHolding: BigInt!
+}
+
+enum Label {
+    LP,
+    YT
+}
+
+type UserShareEvent @entity {
+    id: ID!
+    label: Label!
+    account: String!
+    share: BigInt!
+    timestamp: Int!
+    blockNumber: Int!
+    log_index: Int!
+}

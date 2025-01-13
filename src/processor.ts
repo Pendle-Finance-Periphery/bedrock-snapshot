@@ -2,9 +2,8 @@ import { Counter, Gauge } from '@sentio/sdk';
 import { ERC20Processor } from '@sentio/sdk/eth/builtin';
 import { MISC_CONSTS, PENDLE_POOL_ADDRESSES, CONFIG } from './consts.js';
 import { getUnixTimestamp, isPendleAddress } from './helper.js';
-import { handleSYTransfer } from './handlers/SY.js';
 import { PendleYieldTokenProcessor } from './types/eth/pendleyieldtoken.js';
-import { handleYTRedeemInterest, handleYTTransfer, processAllYTAccounts } from './handlers/YT.js';
+import { handleYTBurn, handleYTRedeemInterest, handleYTTransfer, processAllYTAccounts } from './handlers/YT.js';
 import { PendleMarketProcessor, getPendleMarketContractOnContext } from './types/eth/pendlemarket.js';
 import { handleLPTransfer, handleMarketRedeemReward, handleMarketSwap, processAllLPAccounts } from './handlers/LP.js';
 import { EQBBaseRewardProcessor } from './types/eth/eqbbasereward.js';
@@ -35,7 +34,7 @@ PendleYieldTokenProcessor.bind({
   })
   .onEventRedeemInterest(async (evt, ctx) => {
     await handleYTRedeemInterest(evt, ctx);
-  });
+  }).onEventBurn(handleYTBurn);
 
 for (let lpToken of PENDLE_POOL_ADDRESSES.LP) {
   PendleMarketProcessor.bind({
@@ -63,10 +62,10 @@ for (let eqb of PENDLE_POOL_ADDRESSES.EQB_STAKING) {
     network: CONFIG.BLOCKCHAIN,
   })
     .onEventStaked(async (evt, ctx) => {
-      await processAllLPAccounts(ctx, [evt.args._user.toLowerCase()]);
+      await processAllLPAccounts(ctx, evt.index, [evt.args._user.toLowerCase()]);
     })
     .onEventWithdrawn(async (evt, ctx) => {
-      await processAllLPAccounts(ctx, [evt.args._user.toLowerCase()]);
+      await processAllLPAccounts(ctx, evt.index, [evt.args._user.toLowerCase()]);
     });
 }
 
@@ -77,7 +76,7 @@ for (let pp of PENDLE_POOL_ADDRESSES.PENPIE_RECEIPT_TOKEN) {
     name: 'Penpie Receipt Token',
     network: CONFIG.BLOCKCHAIN,
   }).onEventTransfer(async (evt, ctx) => {
-    await processAllLPAccounts(ctx, [evt.args.from.toLowerCase(), evt.args.to.toLowerCase()]);
+    await processAllLPAccounts(ctx, evt.index, [evt.args.from.toLowerCase(), evt.args.to.toLowerCase()]);
   });
 }
 
