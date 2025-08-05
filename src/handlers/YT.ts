@@ -70,7 +70,7 @@ export async function processAllYTAccounts(
     if (interestData.lastPYIndex == 0n) continue;
 
     const impliedHolding = (balance * MISC_CONSTS.ONE_E18) / interestData.lastPYIndex + interestData.accruedInterest;
-    const fee = (impliedHolding * 3n) / 100n;
+    const fee = (impliedHolding * 5n) / 100n;
     await updateAccount(ctx, logIndex, address, impliedHolding - fee, timestamp);
   }
 
